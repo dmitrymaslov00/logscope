@@ -20,6 +20,9 @@ def init_db(db_path: Path) -> None:
             )
         """)
 
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_timestamp ON events(timestamp)
+        """)
 
 
 def insert_event(db_path: Path, event: Event) -> None:
