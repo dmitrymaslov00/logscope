@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from logscope.parsers.auth_log import parse_line, parse_file
 from logscope.models import EVENT_OTHER, EVENT_SSH_INVALID_USER, EVENT_SSH_LOGIN_FAILED, EVENT_SSH_LOGIN_SUCCESS
 import inspect
+from pathlib import Path
+from collections import Counter
 
 
 def test_extracts_header():
@@ -173,3 +175,16 @@ def test_sshd_session():
     assert event.user == 'admin'
     assert event.src_ip == '203.0.113.5'
     assert event.src_port == 51234
+
+
+def test_golden_auth_sample():
+    path = Path(__file__).parent / 'data' / 'auth_sample.log'
+
+    events = list(parse_file(path, 2026))
+    counts = Counter(e.event_type for e in events)
+
+    assert len(events) == 23
+    assert counts[EVENT_SSH_LOGIN_FAILED] == 7
+    assert counts[EVENT_SSH_INVALID_USER] == 2
+    assert counts[EVENT_SSH_LOGIN_SUCCESS] == 4
+    assert counts[EVENT_OTHER] == 10

@@ -59,7 +59,7 @@ def parse_line(line: str, year: int) -> Event | None:
     m_invalid = PATTERN_FAILED_INVALID.match(rest)
     m_failed = PATTERN_FAILED.match(rest)
     m_standalone = PATTERN_INVALID_STANDALONE.match(rest)
-    m_accepted_password = PATTERN_ACCEPTED_INTERACTIVE.match(rest)
+    m_accepted_interactive = PATTERN_ACCEPTED_INTERACTIVE.match(rest)
     m_accepted_publickey = PATTERN_ACCEPTED_PUBLICKEY.match(rest)
 
 
@@ -81,10 +81,10 @@ def parse_line(line: str, year: int) -> Event | None:
         src_port = int(m_standalone.group('port'))
         event_type = EVENT_SSH_INVALID_USER
 
-    elif m_accepted_password:
-        user = m_accepted_password.group('user')
-        src_ip = validate_ip(m_accepted_password.group('ip'))
-        src_port = int(m_accepted_password.group('port'))
+    elif m_accepted_interactive:
+        user = m_accepted_interactive.group('user')
+        src_ip = validate_ip(m_accepted_interactive.group('ip'))
+        src_port = int(m_accepted_interactive.group('port'))
         event_type = EVENT_SSH_LOGIN_SUCCESS
 
     elif m_accepted_publickey:

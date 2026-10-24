@@ -1,0 +1,23 @@
+Oct  9 23:58:41 web01 CRON[18231]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Oct  9 23:58:41 web01 CRON[18231]: pam_unix(cron:session): session closed for user root
+Oct 10 00:03:17 web01 sshd[18302]: Invalid user admin from 198.51.100.23 port 40122
+Oct 10 00:03:19 web01 sshd[18302]: Failed password for invalid user admin from 198.51.100.23 port 40122 ssh2
+Oct 10 00:03:22 web01 sshd[18302]: Failed password for invalid user admin from 198.51.100.23 port 40122 ssh2
+Oct 10 00:03:25 web01 sshd[18302]: Connection closed by invalid user admin 198.51.100.23 port 40122 [preauth]
+Oct 10 00:03:31 web01 sshd[18310]: Invalid user test from 198.51.100.23 port 40188
+Oct 10 00:03:33 web01 sshd[18310]: Failed password for invalid user test from 198.51.100.23 port 40188 ssh2
+Oct 10 00:04:02 web01 sshd[18322]: Failed password for root from 203.0.113.77 port 52814 ssh2
+Oct 10 00:04:05 web01 sshd[18322]: Failed password for root from 203.0.113.77 port 52814 ssh2
+Oct 10 00:04:08 web01 sshd[18322]: Failed password for root from 203.0.113.77 port 52814 ssh2
+Oct 10 00:04:11 web01 sshd[18322]: Disconnected from authenticating user root 203.0.113.77 port 52814 [preauth]
+Oct 10 08:15:44 web01 sshd[19040]: Accepted publickey for deploy from 192.0.2.10 port 51234 ssh2: ED25519 SHA256:Xk3mQ9vT2pLwR7nYdA1bHcEu8sFjZoGqV4tNiMxB0Uc
+Oct 10 08:15:44 web01 systemd-logind[712]: New session 41 of user deploy.
+Oct 10 08:15:44 web01 sshd[19040]: pam_unix(sshd:session): session opened for user deploy(uid=1001) by (uid=0)
+Oct 10 09:02:11 web01 sshd[19188]: Accepted keyboard-interactive/pam for alice from 192.0.2.44 port 60418 ssh2
+Oct 10 09:02:11 web01 systemd-logind[712]: New session 42 of user alice.
+Oct 10 09:30:27 web01 sudo:    alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/apt update
+Oct 10 10:41:05 web01 sshd-session[20455]: Failed password for bob from 192.0.2.99 port 44871 ssh2
+Oct 10 10:41:09 web01 sshd-session[20455]: Accepted password for bob from 192.0.2.99 port 44871 ssh2
+Oct 10 17:20:03 web01 sshd[21977]: Accepted password for deploy from 192.0.2.10 port 51302 ssh2
+Oct 10 17:20:03 web01 sshd[21977]: pam_unix(sshd:session): session opened for user deploy(uid=1001) by (uid=0)
+Oct 10 17:55:48 web01 sshd[21977]: pam_unix(sshd:session): session closed for user deploy
