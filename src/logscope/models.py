@@ -21,3 +21,11 @@ class Event:
     src_ip: str | None = None
     src_port: int | None = None
 
+
+@dataclass(frozen=True, slots=True)
+class Alert:
+    rule: str
+    src_ip: str
+    count: int
+    first_seen: datetime
+    last_seen: datetime
