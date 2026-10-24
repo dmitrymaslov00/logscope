@@ -27,7 +27,8 @@ def init_db(db_path: Path) -> None:
                     raw TEXT NOT NULL,
                     user TEXT,
                     src_ip TEXT,
-                    src_port INTEGER
+                    src_port INTEGER,
+                    UNIQUE (timestamp, host, source, raw)
                 )
             """)
 
@@ -42,7 +43,7 @@ def insert_event(db_path: Path, event: Event) -> None:
     with closing(sqlite3.connect(db_path)) as conn:
         with conn:
             conn.execute("""
-                INSERT INTO events (timestamp, host, source, event_type, raw, user, src_ip, src_port)
+                INSERT OR IGNORE INTO events (timestamp, host, source, event_type, raw, user, src_ip, src_port)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (

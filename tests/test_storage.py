@@ -329,3 +329,29 @@ def test_query_events_window_is_half_open(tmp_path):
 
     assert len(events) == 1
     assert events[0].user == 'admin'
+
+
+def test_duplicate_event_is_ignored(tmp_path):
+    p = tmp_path / 'test.db'
+
+    event = Event(
+        timestamp = datetime(2026, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+        host = 'srv', 
+        source = 'auth.log', 
+        event_type = 'ssh_login_failed', 
+        raw = 'raw', 
+        user = 'admin',
+        src_ip = None,
+        src_port = None
+    )
+
+    init_db(p)
+    insert_event(p, event)
+    insert_event(p, event)
+
+    start = datetime(2026, 1, 1, 2, 59, 0, tzinfo=ZoneInfo('Europe/Moscow'))
+    end = datetime(2026, 1, 1, 3, 1, 0, tzinfo=ZoneInfo('Europe/Moscow'))
+
+    events = query_events(p, start=start, end=end)
+
+    assert len(events) == 1
