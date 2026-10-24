@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime, timezone
 from logscope.storage import init_db, insert_event, query_events
 from logscope.models import Event
+from contextlib import closing
 
 
 
@@ -10,12 +11,13 @@ def test_init_db_creates_table(tmp_path):
     p = tmp_path / 'test.db'
     init_db(p)
 
-    with sqlite3.connect(p) as conn:
-        cursor = conn.execute("""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='events'
-        """)
+    with closing(sqlite3.connect(p)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT name FROM sqlite_master WHERE type='table' AND name='events'
+            """)
 
-        rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
 
     assert len(rows) == 1
@@ -26,12 +28,13 @@ def test_init_db_idempotent(tmp_path):
     init_db(p)
     init_db(p)
 
-    with sqlite3.connect(p) as conn:
-        cursor = conn.execute("""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='events'
-        """)
-    
-        assert len(cursor.fetchall()) == 1
+    with closing(sqlite3.connect(p)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT name FROM sqlite_master WHERE type='table' AND name='events'
+            """)
+        
+            assert len(cursor.fetchall()) == 1
     
 
 def test_insert_event(tmp_path):
@@ -51,12 +54,13 @@ def test_insert_event(tmp_path):
     init_db(p)
     insert_event(p, event)
 
-    with sqlite3.connect(p) as conn:
-        cursor = conn.execute("""
-            SELECT * FROM events
-        """)
+    with closing(sqlite3.connect(p)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT * FROM events
+            """)
 
-        rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
     for row in rows:
         date = row[0]
@@ -84,12 +88,13 @@ def test_insert_event_with_nulls(tmp_path):
     init_db(p)
     insert_event(p, event)
 
-    with sqlite3.connect(p) as conn:
-        cursor = conn.execute("""
-            SELECT * FROM events
-        """)
+    with closing(sqlite3.connect(p)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT * FROM events
+            """)
 
-        rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
     for row in rows:
         user = row[5]
@@ -236,12 +241,13 @@ def test_query_events_preserves_order(tmp_path):
     insert_event(p, event2)
     insert_event(p, event3)
 
-    with sqlite3.connect(p) as conn:
-        cursor = conn.execute("""
-            SELECT * FROM events
-        """)
+    with closing(sqlite3.connect(p)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT * FROM events
+            """)
 
-        rows = cursor.fetchall()
+            rows = cursor.fetchall()
 
 
     start = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
