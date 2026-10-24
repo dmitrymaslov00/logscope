@@ -14,7 +14,7 @@ HEADER_RE = re.compile(
 PATTERN_FAILED_INVALID = re.compile(r"^sshd\[\d+\]: Failed password for invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_FAILED = re.compile(r"^sshd\[\d+\]: Failed password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_INVALID_STANDALONE = re.compile(r"^sshd\[\d+\]: Invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)")
-PATTERN_ACCEPTED_PASSWORD = re.compile(r"^sshd\[\d+\]: Accepted (?:password|keyboard-interactive/pam) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_ACCEPTED_INTERACTIVE = re.compile(r"^sshd\[\d+\]: Accepted (?:password|keyboard-interactive/pam) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_ACCEPTED_PUBLICKEY = re.compile(r"^sshd\[\d+\]: Accepted publickey for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2:")
 
 
@@ -59,7 +59,7 @@ def parse_line(line: str, year: int) -> Event | None:
     m_invalid = PATTERN_FAILED_INVALID.match(rest)
     m_failed = PATTERN_FAILED.match(rest)
     m_standalone = PATTERN_INVALID_STANDALONE.match(rest)
-    m_accepted_password = PATTERN_ACCEPTED_PASSWORD.match(rest)
+    m_accepted_password = PATTERN_ACCEPTED_INTERACTIVE.match(rest)
     m_accepted_publickey = PATTERN_ACCEPTED_PUBLICKEY.match(rest)
 
 
