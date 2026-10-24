@@ -81,7 +81,7 @@ def test_accepted_password():
 
 
 def test_accepted_publickey():
-    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2', 2026)
+    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc', 2026)
 
     assert event.event_type == EVENT_SSH_LOGIN_SUCCESS
     assert event.user == 'root'
@@ -99,13 +99,13 @@ def test_unknown_rest_is_other():
 
 
 def test_valid_ipv4():
-    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2', 2026)
+    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc', 2026)
 
     assert event.src_ip == '203.0.113.5'
 
 
 def test_valid_ipv6():
-    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 2001:db8::1 port 22 ssh2', 2026)
+    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 2001:db8::1 port 22 ssh2: ED25519 SHA256:abc', 2026)
 
     assert event.src_ip == '2001:db8::1'
 
@@ -120,7 +120,7 @@ def test_invalid_ip_returns_none():
 
 def test_parse_file_yields_events(tmp_path):
     p = tmp_path / 'auth.log'
-    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2\nOct 19 01:41:02 srv sshd[1]: Failed password for admin from 999.999.999.999 port 22 ssh2\nOct 19 01:41:02 srv sshd[1]: hello', encoding='utf-8')
+    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc\nOct 19 01:41:02 srv sshd[1]: Failed password for admin from 999.999.999.999 port 22 ssh2\nOct 19 01:41:02 srv sshd[1]: hello', encoding='utf-8')
 
     res = list(parse_file(p, 2026))
 
@@ -131,7 +131,7 @@ def test_parse_file_yields_events(tmp_path):
 
 def test_parse_file_skips_garbage(tmp_path):
     p = tmp_path / 'auth.log'
-    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2\nnot a log 1234553\nOct 19 01:41:02 srv sshd[1]: Failed password for admin from 999.999.999.999 port 22 ssh2', encoding='utf-8')
+    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc\nnot a log 1234553\nOct 19 01:41:02 srv sshd[1]: Failed password for admin from 999.999.999.999 port 22 ssh2', encoding='utf-8')
 
     res = list(parse_file(p, 2026))
 
@@ -140,7 +140,7 @@ def test_parse_file_skips_garbage(tmp_path):
 
 def test_parse_file_default_year_from_mtime(tmp_path):
     p = tmp_path / 'auth.log'
-    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2', encoding='utf-8')
+    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc', encoding='utf-8')
 
     expected_year = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc).year
     event = next(parse_file(p))
@@ -150,7 +150,7 @@ def test_parse_file_default_year_from_mtime(tmp_path):
 
 def test_parse_file_is_generator(tmp_path):
     p = tmp_path / 'auth.log'
-    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2', encoding='utf-8')
+    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 22 ssh2: ED25519 SHA256:abc', encoding='utf-8')
 
     res = parse_file(p, 2026)
 

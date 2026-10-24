@@ -14,7 +14,8 @@ HEADER_RE = re.compile(
 PATTERN_FAILED_INVALID = re.compile(r"^sshd\[\d+\]: Failed password for invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_FAILED = re.compile(r"^sshd\[\d+\]: Failed password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_INVALID_STANDALONE = re.compile(r"^sshd\[\d+\]: Invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)")
-PATTERN_ACCEPTED = re.compile(r"^sshd\[\d+\]: Accepted (?:password|publickey) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_ACCEPTED_PASSWORD = re.compile(r"^sshd\[\d+\]: Accepted password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_ACCEPTED_PUBLICKEY = re.compile(r"^sshd\[\d+\]: Accepted publickey for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2:")
 
 
 MONTHS: dict[str, int] = {
@@ -58,7 +59,8 @@ def parse_line(line: str, year: int) -> Event | None:
     m_invalid = PATTERN_FAILED_INVALID.match(rest)
     m_failed = PATTERN_FAILED.match(rest)
     m_standalone = PATTERN_INVALID_STANDALONE.match(rest)
-    m_accepted = PATTERN_ACCEPTED.match(rest)
+    m_accepted_password = PATTERN_ACCEPTED_PASSWORD.match(rest)
+    m_accepted_publickey = PATTERN_ACCEPTED_PUBLICKEY.match(rest)
 
 
     if m_invalid:
@@ -79,11 +81,17 @@ def parse_line(line: str, year: int) -> Event | None:
         src_port = int(m_standalone.group('port'))
         event_type = EVENT_SSH_INVALID_USER
 
-    elif m_accepted:
-        user = m_accepted.group('user')
-        src_ip = validate_ip(m_accepted.group('ip'))
-        src_port = int(m_accepted.group('port'))
+    elif m_accepted_password:
+        user = m_accepted_password.group('user')
+        src_ip = validate_ip(m_accepted_password.group('ip'))
+        src_port = int(m_accepted_password.group('port'))
         event_type = EVENT_SSH_LOGIN_SUCCESS
+
+    elif m_accepted_publickey:
+            user = m_accepted_publickey.group('user')
+            src_ip = validate_ip(m_accepted_publickey.group('ip'))
+            src_port = int(m_accepted_publickey.group('port'))
+            event_type = EVENT_SSH_LOGIN_SUCCESS
 
     else:
         user = None
