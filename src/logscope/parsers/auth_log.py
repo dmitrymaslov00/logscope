@@ -115,18 +115,35 @@ def parse_line(line: str, year: int, tz: tzinfo = timezone.utc) -> Event | None:
 
 
 def parse_file(path: str | Path, year: int | None=None, tz: tzinfo=timezone.utc) -> Iterator[Event]:
-    if year is None:
+    guess_year = year is None
+
+    if guess_year:
         mtime = Path(path).stat().st_mtime
-        year = datetime.fromtimestamp(mtime, tz=tz).year
+        file_dt = datetime.fromtimestamp(mtime, tz=tz)
 
     with open(path, encoding='utf-8', errors='replace') as f:
         for line in f:
-            res = parse_line(line, year, tz)
+            line_year = year
+
+            if guess_year:
+                m = HEADER_RE.match(line)
+                if m is None:
+                    continue
+
+                month_num = MONTHS.get(m.group('month'))
+                if month_num is None:
+                    continue
+
+                if month_num > file_dt.month:
+                    line_year = file_dt.year - 1
+                else:
+                    line_year = file_dt.year
+
+            res = parse_line(line, line_year, tz)
             if res is None:
                 continue
             else:
-                yield res
-                
+                yield res            
 
 
 def validate_ip(ip: str) -> str | None:

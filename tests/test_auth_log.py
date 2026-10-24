@@ -6,6 +6,7 @@ import inspect
 from pathlib import Path
 from collections import Counter
 from zoneinfo import ZoneInfo
+import os
 
 
 def test_extracts_header():
@@ -141,16 +142,6 @@ def test_parse_file_skips_garbage(tmp_path):
     assert len(res) == 2
 
 
-def test_parse_file_default_year_from_mtime(tmp_path):
-    p = tmp_path / 'auth.log'
-    p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 51234 ssh2: ED25519 SHA256:abc', encoding='utf-8')
-
-    expected_year = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc).year
-    event = next(parse_file(p))
-
-    assert event.timestamp.year == expected_year
-
-
 def test_parse_file_is_generator(tmp_path):
     p = tmp_path / 'auth.log'
     p.write_text('Oct 19 01:41:02 srv sshd[1]: Accepted publickey for root from 203.0.113.5 port 51234 ssh2: ED25519 SHA256:abc', encoding='utf-8')
@@ -196,3 +187,27 @@ def test_timezone():
 
     assert event.timestamp == datetime(2026, 10, 9, 21, 3, 17, tzinfo=timezone.utc)
     assert event.timestamp.tzinfo is timezone.utc
+
+
+def test_parse_file_year_rollover(tmp_path):
+    p = tmp_path / 'auth.log'
+    p.write_text('Dec 31 23:00:00 srv sshd[1]: test\nJan  3 10:00:00 srv sshd[1]: test', encoding='utf-8')
+
+    ts = datetime(2027, 1, 5, tzinfo=timezone.utc).timestamp()
+    os.utime(p, (ts, ts))
+    res = list(parse_file(p))
+
+    assert p.stat().st_mtime == ts
+    assert res[0].timestamp.year == 2026
+    assert res[1].timestamp.year == 2027
+
+
+def test_parse_file_default_year_from_mtime(tmp_path):
+    p = tmp_path / 'auth.log'
+    p.write_text('Oct 19 01:41:02 srv sshd[1]: test', encoding='utf-8')
+
+    ts = datetime(2019, 10, 30, tzinfo=timezone.utc).timestamp()
+    os.utime(p, (ts, ts))
+    res = list(parse_file(p))
+
+    assert res[0].timestamp.year == 2019
