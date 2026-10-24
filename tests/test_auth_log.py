@@ -5,6 +5,7 @@ from logscope.models import EVENT_OTHER, EVENT_SSH_INVALID_USER, EVENT_SSH_LOGIN
 import inspect
 from pathlib import Path
 from collections import Counter
+from zoneinfo import ZoneInfo
 
 
 def test_extracts_header():
@@ -188,3 +189,10 @@ def test_golden_auth_sample():
     assert counts[EVENT_SSH_INVALID_USER] == 2
     assert counts[EVENT_SSH_LOGIN_SUCCESS] == 4
     assert counts[EVENT_OTHER] == 10
+
+
+def test_timezone():
+    event = parse_line('Oct 10 00:03:17 srv sshd[1]: test', 2026, ZoneInfo('Europe/Moscow'))
+
+    assert event.timestamp == datetime(2026, 10, 9, 21, 3, 17, tzinfo=timezone.utc)
+    assert event.timestamp.tzinfo is timezone.utc

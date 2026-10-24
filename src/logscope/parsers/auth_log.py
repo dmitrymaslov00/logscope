@@ -1,5 +1,5 @@
 from logscope.models import Event, EVENT_OTHER, EVENT_SSH_INVALID_USER, EVENT_SSH_LOGIN_FAILED, EVENT_SSH_LOGIN_SUCCESS
-from datetime import datetime, timezone
+from datetime import datetime, timezone, tzinfo
 import re
 import ipaddress
 from pathlib import Path
@@ -35,7 +35,7 @@ MONTHS: dict[str, int] = {
 }
 
 
-def parse_line(line: str, year: int) -> Event | None:
+def parse_line(line: str, year: int, tz: tzinfo = timezone.utc) -> Event | None:
     m = HEADER_RE.match(line)
 
     if m is None:
@@ -51,7 +51,8 @@ def parse_line(line: str, year: int) -> Event | None:
     day = int(m.group('day'))
 
     try:
-        date = datetime(year, month_num, day, hours, minutes, seconds, tzinfo=timezone.utc)
+        date = datetime(year, month_num, day, hours, minutes, seconds, tzinfo=tz)
+        date = date.astimezone(timezone.utc)
     except ValueError:
         return None
 
@@ -113,14 +114,14 @@ def parse_line(line: str, year: int) -> Event | None:
     )
 
 
-def parse_file(path: str | Path, year: int | None = None) -> Iterator[Event]:
+def parse_file(path: str | Path, year: int | None=None, tz: tzinfo=timezone.utc) -> Iterator[Event]:
     if year is None:
         mtime = Path(path).stat().st_mtime
-        year = datetime.fromtimestamp(mtime, tz=timezone.utc).year
+        year = datetime.fromtimestamp(mtime, tz=tz).year
 
     with open(path, encoding='utf-8', errors='replace') as f:
         for line in f:
-            res = parse_line(line, year)
+            res = parse_line(line, year, tz)
             if res is None:
                 continue
             else:
