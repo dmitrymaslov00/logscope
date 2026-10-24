@@ -175,7 +175,7 @@ def test_query_events_in_range(tmp_path):
     
     events = query_events(p, start=start, end=end)
 
-    assert len(events) == 3
+    assert len(events) == 2
 
 
 def test_query_events_empty_result(tmp_path):
@@ -242,17 +242,8 @@ def test_query_events_preserves_order(tmp_path):
     insert_event(p, event2)
     insert_event(p, event3)
 
-    with closing(sqlite3.connect(p)) as conn:
-        with conn:
-            cursor = conn.execute("""
-                SELECT * FROM events
-            """)
-
-            rows = cursor.fetchall()
-
-
     start = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
-    end = datetime(2026, 1, 1, 0, 0, 2, tzinfo=timezone.utc)
+    end = datetime(2026, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
     
     events = query_events(p, start=start, end=end)
     
@@ -278,8 +269,6 @@ def test_query_events_rejects_naive_datetime(tmp_path):
 def test_query_events_accepts_non_utc_bounds(tmp_path):
     p = tmp_path / 'test.db'
 
-    init_db(p)
-
     event = Event(
         timestamp = datetime(2026, 1, 1, 0, 0, 3, tzinfo=timezone.utc),
         host = 'srv', 
@@ -291,6 +280,7 @@ def test_query_events_accepts_non_utc_bounds(tmp_path):
         src_port = None
     )
 
+    init_db(p)
     insert_event(p, event)
 
     start = datetime(2026, 1, 1, 2, 59, 0, tzinfo=ZoneInfo('Europe/Moscow'))
@@ -299,3 +289,43 @@ def test_query_events_accepts_non_utc_bounds(tmp_path):
     events = query_events(p, start=start, end=end)
 
     assert len(events) == 1
+
+
+def test_query_events_window_is_half_open(tmp_path):
+    p = tmp_path / 'test.db'
+
+    event1 = Event(
+        timestamp = datetime(2026, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+        host = 'srv', 
+        source = 'auth.log', 
+        event_type = 'ssh_login_failed', 
+        raw = 'raw', 
+        user = 'admin',
+        src_ip = None,
+        src_port = None
+    )
+
+    event2 = Event(
+        timestamp = datetime(2026, 1, 1, 0, 0, 8, tzinfo=timezone.utc),
+        host = 'srv', 
+        source = 'auth.log', 
+        event_type = 'ssh_login_failed', 
+        raw = 'raw', 
+        user = 'root',
+        src_ip = None,
+        src_port = None
+    )
+
+    init_db(p)
+    insert_event(p, event1)
+    insert_event(p, event2)
+
+
+    start = datetime(2026, 1, 1, 0, 0, 5, tzinfo=timezone.utc)
+    end = datetime(2026, 1, 1, 0, 0, 8, tzinfo=timezone.utc)
+    
+
+    events = query_events(p, start=start, end=end)
+
+    assert len(events) == 1
+    assert events[0].user == 'admin'

@@ -67,7 +67,7 @@ def query_events(db_path: Path, start: datetime, end: datetime) -> list[Event]:
         with conn:
             cursor = conn.execute("""
                 SELECT timestamp, host, source, event_type, raw, user, src_ip, src_port
-                FROM events WHERE timestamp >= ? AND timestamp <= ?
+                FROM events WHERE timestamp >= ? AND timestamp < ?
                 ORDER BY timestamp
             """,
                 (
