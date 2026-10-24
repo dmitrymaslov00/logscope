@@ -14,7 +14,7 @@ HEADER_RE = re.compile(
 PATTERN_FAILED_INVALID = re.compile(r"^sshd\[\d+\]: Failed password for invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_FAILED = re.compile(r"^sshd\[\d+\]: Failed password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_INVALID_STANDALONE = re.compile(r"^sshd\[\d+\]: Invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)")
-PATTERN_ACCEPTED_PASSWORD = re.compile(r"^sshd\[\d+\]: Accepted password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_ACCEPTED_PASSWORD = re.compile(r"^sshd\[\d+\]: Accepted (?:password|keyboard-interactive/pam) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
 PATTERN_ACCEPTED_PUBLICKEY = re.compile(r"^sshd\[\d+\]: Accepted publickey for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2:")
 
 

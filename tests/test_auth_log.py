@@ -155,3 +155,12 @@ def test_parse_file_is_generator(tmp_path):
     res = parse_file(p, 2026)
 
     assert inspect.isgenerator(res)
+    
+
+def test_accepted_keyboard_interactive_pam():
+    event = parse_line('Oct 19 01:41:02 srv sshd[1]: Accepted keyboard-interactive/pam for bob from 203.0.113.5 port 51234 ssh2', 2026)
+
+    assert event.event_type == EVENT_SSH_LOGIN_SUCCESS
+    assert event.user == 'bob'
+    assert event.src_ip == '203.0.113.5'
+    assert event.src_port == 51234
