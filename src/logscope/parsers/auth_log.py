@@ -67,7 +67,7 @@ def parse_line(line: str, year: int) -> Event | None:
         user = m_invalid.group('user')
         src_ip = validate_ip(m_invalid.group('ip'))
         src_port = int(m_invalid.group('port'))
-        event_type = EVENT_SSH_INVALID_USER
+        event_type = EVENT_SSH_LOGIN_FAILED
 
     elif m_failed:
         user = m_failed.group('user')

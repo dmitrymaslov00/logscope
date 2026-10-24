@@ -56,7 +56,7 @@ def test_failed_password():
 def test_failed_password_invalid_user():
     event = parse_line('Oct 19 01:41:02 srv sshd[1]: Failed password for invalid user qwe from 203.0.113.5 port 22 ssh2', 2026)
 
-    assert event.event_type == EVENT_SSH_INVALID_USER
+    assert event.event_type == EVENT_SSH_LOGIN_FAILED
     assert event.user == 'qwe'
     assert event.src_ip == '203.0.113.5'
     assert event.src_port == 22
