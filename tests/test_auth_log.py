@@ -164,3 +164,12 @@ def test_accepted_keyboard_interactive_pam():
     assert event.user == 'bob'
     assert event.src_ip == '203.0.113.5'
     assert event.src_port == 51234
+
+
+def test_sshd_session():
+    event = parse_line('Oct 19 01:41:02 srv sshd-session[2847]: Failed password for admin from 203.0.113.5 port 51234 ssh2', 2026)
+
+    assert event.event_type == EVENT_SSH_LOGIN_FAILED
+    assert event.user == 'admin'
+    assert event.src_ip == '203.0.113.5'
+    assert event.src_port == 51234

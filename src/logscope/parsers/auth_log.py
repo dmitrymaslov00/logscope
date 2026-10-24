@@ -11,11 +11,11 @@ HEADER_RE = re.compile(
     r"(?P<time>\d{2}:\d{2}:\d{2})\s+(?P<host>\S+)\s+(?P<rest>.*)$"
 )
 
-PATTERN_FAILED_INVALID = re.compile(r"^sshd\[\d+\]: Failed password for invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
-PATTERN_FAILED = re.compile(r"^sshd\[\d+\]: Failed password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
-PATTERN_INVALID_STANDALONE = re.compile(r"^sshd\[\d+\]: Invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)")
-PATTERN_ACCEPTED_INTERACTIVE = re.compile(r"^sshd\[\d+\]: Accepted (?:password|keyboard-interactive/pam) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
-PATTERN_ACCEPTED_PUBLICKEY = re.compile(r"^sshd\[\d+\]: Accepted publickey for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2:")
+PATTERN_FAILED_INVALID = re.compile(r"^(?:sshd|sshd-session)\[\d+\]: Failed password for invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_FAILED = re.compile(r"^(?:sshd|sshd-session)\[\d+\]: Failed password for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_INVALID_STANDALONE = re.compile(r"^(?:sshd|sshd-session)\[\d+\]: Invalid user (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)")
+PATTERN_ACCEPTED_INTERACTIVE = re.compile(r"^(?:sshd|sshd-session)\[\d+\]: Accepted (?:password|keyboard-interactive/pam) for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2$")
+PATTERN_ACCEPTED_PUBLICKEY = re.compile(r"^(?:sshd|sshd-session)\[\d+\]: Accepted publickey for (?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+) ssh2:")
 
 
 MONTHS: dict[str, int] = {
