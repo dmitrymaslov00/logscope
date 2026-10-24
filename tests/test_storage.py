@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from logscope.storage import init_db, insert_event, query_events
 from logscope.models import Event
 from contextlib import closing
+from zoneinfo import ZoneInfo
 
 
 
@@ -259,4 +260,42 @@ def test_query_events_preserves_order(tmp_path):
     assert events[0].timestamp == datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
     assert events[1].timestamp == datetime(2026, 1, 1, 0, 0, 1, tzinfo=timezone.utc)
     assert events[2].timestamp == datetime(2026, 1, 1, 0, 0, 2, tzinfo=timezone.utc)
-    
+
+
+def test_query_events_rejects_naive_datetime(tmp_path):
+    p = tmp_path / 'test.db'
+
+    init_db(p)
+
+    start = datetime(2026, 1, 1, 0, 0, 0)
+    end = datetime(2026, 1, 1, 0, 0, 1)
+
+
+    with pytest.raises(ValueError):
+        query_events(p, start=start, end=end)
+
+
+def test_query_events_accepts_non_utc_bounds(tmp_path):
+    p = tmp_path / 'test.db'
+
+    init_db(p)
+
+    event = Event(
+        timestamp = datetime(2026, 1, 1, 0, 0, 3, tzinfo=timezone.utc),
+        host = 'srv', 
+        source = 'auth.log', 
+        event_type = 'ssh_login_failed', 
+        raw = 'raw', 
+        user = None,
+        src_ip = None,
+        src_port = None
+    )
+
+    insert_event(p, event)
+
+    start = datetime(2026, 1, 1, 2, 59, 0, tzinfo=ZoneInfo('Europe/Moscow'))
+    end = datetime(2026, 1, 1, 3, 1, 0, tzinfo=ZoneInfo('Europe/Moscow'))
+
+    events = query_events(p, start=start, end=end)
+
+    assert len(events) == 1

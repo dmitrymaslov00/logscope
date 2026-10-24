@@ -1,9 +1,18 @@
 import sqlite3
 from pathlib import Path
 from logscope.models import Event
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import closing
 
+
+
+def _to_utc_iso(dt: datetime) -> str:
+    if dt.tzinfo is None:
+        raise ValueError('naive datetime is not allowed, pass a timezone-aware value')
+
+    utc_dt = dt.astimezone(timezone.utc)
+    iso_datetime = utc_dt.isoformat()
+    return iso_datetime
 
 
 def init_db(db_path: Path) -> None:
@@ -28,7 +37,7 @@ def init_db(db_path: Path) -> None:
 
 
 def insert_event(db_path: Path, event: Event) -> None:
-    iso_datetime = event.timestamp.isoformat()
+    iso_datetime = _to_utc_iso(event.timestamp)
 
     with closing(sqlite3.connect(db_path)) as conn:
         with conn:
@@ -51,8 +60,8 @@ def insert_event(db_path: Path, event: Event) -> None:
 
 
 def query_events(db_path: Path, start: datetime, end: datetime) -> list[Event]:
-    iso_start = start.isoformat()
-    iso_end = end.isoformat()
+    iso_start = _to_utc_iso(start)
+    iso_end = _to_utc_iso(end)
 
     with closing(sqlite3.connect(db_path)) as conn:
         with conn:
