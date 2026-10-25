@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timezone
 from dataclasses import FrozenInstanceError
-from logscope.models import Event, Alert
+from logscope.models import Event
 
 
 def test_event_stores_all_fields(make_event):
@@ -14,7 +14,7 @@ def test_event_stores_all_fields(make_event):
     assert event.raw == 'raw'
     assert event.user == 'root'
     assert event.src_ip == '192.168.0.1'
-    assert event.src_port == 22
+    assert event.src_port == 51122
 
 
 def test_optional_fields_default_to_none():

@@ -15,7 +15,7 @@ def make_event():
             "raw": "raw",
             "user": "root",
             "src_ip": "192.168.0.1",
-            "src_port": 22
+            "src_port": 51122
         }
 
         defaults.update(overrides)

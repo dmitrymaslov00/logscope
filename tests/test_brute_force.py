@@ -1,4 +1,3 @@
-import pytest
 from logscope.rules.brute_force import detect_brute_force
 from datetime import datetime, timezone
 
