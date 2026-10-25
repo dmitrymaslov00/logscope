@@ -39,6 +39,6 @@ def test_real_alert(make_event):
 
 
     assert len(res) == 1
-    assert res[0].src_ip == '192.168.0.1'
+    assert res[0].src_ip == '203.0.113.5'
     assert res[0].count == 5
     assert res[0].last_seen == datetime(2026, 10, 19, 1, 41, 40, tzinfo=timezone.utc)

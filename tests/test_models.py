@@ -13,7 +13,7 @@ def test_event_stores_all_fields(make_event):
     assert event.event_type == 'ssh_login_failed'
     assert event.raw == 'raw'
     assert event.user == 'root'
-    assert event.src_ip == '192.168.0.1'
+    assert event.src_ip == '203.0.113.5'
     assert event.src_port == 51122
 
 
@@ -51,7 +51,7 @@ def test_alert_stores_all_fields(make_alert):
     alert = make_alert()
 
     assert alert.rule == 'ssh_brute_force'
-    assert alert.src_ip == '192.168.0.1'
+    assert alert.src_ip == '203.0.113.5'
     assert alert.count == 5
     assert alert.first_seen == datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc)
     assert alert.last_seen == datetime(2026, 10, 19, 1, 41, 55, tzinfo=timezone.utc)

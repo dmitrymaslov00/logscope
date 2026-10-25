@@ -14,7 +14,7 @@ def make_event():
             "event_type": "ssh_login_failed",
             "raw": "raw",
             "user": "root",
-            "src_ip": "192.168.0.1",
+            "src_ip": "203.0.113.5",
             "src_port": 51122
         }
 
@@ -30,7 +30,7 @@ def make_alert():
         
         defaults = {
             "rule": "ssh_brute_force",
-            "src_ip": "192.168.0.1",
+            "src_ip": "203.0.113.5",
             "count": 5,
             "first_seen": datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc),
             "last_seen": datetime(2026, 10, 19, 1, 41, 55, tzinfo=timezone.utc),

@@ -48,7 +48,7 @@ def test_insert_event(tmp_path):
         event_type = 'ssh_login_failed', 
         raw = 'raw', 
         user = 'root',
-        src_ip = '192.168.0.1', 
+        src_ip = '203.0.113.5', 
         src_port = 22
     )
 
