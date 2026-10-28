@@ -67,3 +67,18 @@ def load_rule(path: Path) -> Rule:
             
     except OSError as e:
         raise RuleError(f'{path}: cannot read file ({e})') from e
+
+
+def load_rules(directory: Path) -> list[Rule]:
+    if not directory.is_dir(): 
+        raise RuleError(f'{directory}: not a directory')
+
+    rules = []
+    seen = {}
+    for path in sorted(directory.glob('*.yml')):
+        rule = load_rule(path)
+        if rule.id in seen:
+            raise RuleError(f'duplicate rule id "{rule.id}": {seen[rule.id]} and {path}')
+        seen[rule.id] = path
+        rules.append(rule)
+    return rules

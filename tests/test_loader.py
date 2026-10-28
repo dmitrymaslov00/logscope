@@ -1,4 +1,4 @@
-from logscope.rules.loader import load_rule, RuleError
+from logscope.rules.loader import load_rule, load_rules, RuleError
 import pytest
 
 
@@ -338,3 +338,107 @@ def test_not_string_description_raises(tmp_path):
 
     with pytest.raises(RuleError, match='"description" must be a string'):
         load_rule(p)
+
+
+def test_load_rules_empty_directory_returns_empty_list(tmp_path):
+    res = load_rules(tmp_path)
+
+    assert res == []
+
+
+def test_load_rules_missing_directory_raises(tmp_path):
+    p = tmp_path / 'nope'
+
+    with pytest.raises(RuleError, match='not a directory'):
+        load_rules(p)
+
+
+def test_load_rules_loads_all_files(tmp_path):
+    a = tmp_path / 'a.yml'
+    b = tmp_path / 'b.yml'
+
+    a.write_text(
+        """
+        id: rule_a
+        event_type: ssh_login_failed
+        threshold: 5
+        window_seconds: 60
+        """, encoding='utf-8'
+    )
+
+    b.write_text(
+        """
+        id: rule_b
+        event_type: ssh_login_failed
+        threshold: 5
+        window_seconds: 60
+        """, encoding='utf-8'
+    )
+
+
+    res = load_rules(tmp_path)
+
+    assert len(res) == 2
+    assert res[0].id == 'rule_a'
+    assert res[1].id == 'rule_b'
+
+
+def test_load_rules_duplicate_id_raises(tmp_path):
+    a = tmp_path / 'a.yml'
+    b = tmp_path / 'b.yml'
+
+    a.write_text(
+        """
+        id: rule_a
+        event_type: ssh_login_failed
+        threshold: 5
+        window_seconds: 60
+        """, encoding='utf-8'
+    )
+
+    b.write_text(
+        """
+        id: rule_a
+        event_type: ssh_login_failed
+        threshold: 5
+        window_seconds: 60
+        """, encoding='utf-8'
+    )
+
+
+    with pytest.raises(RuleError, match='a.yml.*b.yml'):
+        load_rules(tmp_path)
+
+
+def test_load_rules_invalid_file_raises(tmp_path):
+    p = tmp_path / 'rule.yml'
+
+    p.write_text(
+    """
+    id: ssh_brute_force
+    event_type: ssh_login_failed
+    threshold: 0
+    window_seconds: 60
+    """, encoding='utf-8')
+
+    with pytest.raises(RuleError, match='"threshold" must be greater than 0'):
+        load_rules(tmp_path)
+
+
+def test_load_rules_ignores_non_yaml_files(tmp_path):
+    p = tmp_path / 'rule.yml'
+    n = tmp_path / 'note.txt'
+
+    p.write_text(
+    """
+    id: ssh_brute_force
+    event_type: ssh_login_failed
+    threshold: 5
+    window_seconds: 60
+    """, encoding='utf-8')
+
+    n.write_text('this is: [not a rule', encoding='utf-8')
+
+    res = load_rules(tmp_path)
+
+    assert len(res) == 1
