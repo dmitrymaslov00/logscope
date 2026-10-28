@@ -1,5 +1,6 @@
 from logscope.rules.brute_force import detect_brute_force
 from datetime import datetime, timezone, timedelta
+from logscope.storage import init_db, insert_event, query_events
 
 
 
@@ -164,3 +165,33 @@ def test_unsorted_events_still_produce_alert(make_event):
     assert len(res) == 1
     assert res[0].first_seen == datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc)
     assert res[0].last_seen == datetime(2026, 10, 19, 1, 41, 40, tzinfo=timezone.utc)
+
+
+def test_rule_works_on_events_from_storage(tmp_path, make_event):
+    db = tmp_path / 'test.db'
+    init_db(db)
+    start = datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc)
+
+
+    for num in range(5):
+        event = make_event(
+            timestamp = start + timedelta(seconds=10 * num),
+            event_type='ssh_login_failed'
+        )
+        insert_event(db, event)
+
+    event = make_event(
+        timestamp = datetime(2026, 10, 19, 2, 41, 0, tzinfo=timezone.utc)
+    )
+
+    insert_event(db, event)
+
+
+    events_from_db = query_events(db, start, end = start + timedelta(minutes=1))
+
+    res = detect_brute_force(events_from_db)
+
+    assert len(res) == 1
+    assert res[0].count == 5
+    assert res[0].first_seen == start
+    assert len(events_from_db) == 5
