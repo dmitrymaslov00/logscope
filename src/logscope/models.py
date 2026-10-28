@@ -29,3 +29,13 @@ class Alert:
     count: int
     first_seen: datetime
     last_seen: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class Rule:
+    id: str
+    event_type: str
+    threshold: int
+    window_seconds: int
+    title: str = ''
+    description: str = ''

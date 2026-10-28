@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timezone
 from dataclasses import FrozenInstanceError
-from logscope.models import Event
+from logscope.models import Event, Rule
 
 
 def test_event_stores_all_fields(make_event):
@@ -17,13 +17,13 @@ def test_event_stores_all_fields(make_event):
     assert event.src_port == 51122
 
 
-def test_optional_fields_default_to_none():
+def test_optional_event_fields_default_to_none():
     event = Event(
         timestamp = datetime(2026, 10, 19, 1, 41, 2, tzinfo=timezone.utc),
         host = 'srv',
         source = 'auth.log',
         event_type = 'ssh_login_failed',
-        raw = 'raw',
+        raw = 'raw'
     )
 
     assert event.user is None
@@ -62,3 +62,33 @@ def test_alert_is_immutable(make_alert):
 
     with pytest.raises(FrozenInstanceError):
         alert.count = 3
+
+
+def test_rule_stores_all_fields(make_rule):
+    rule = make_rule()
+
+    assert rule.id == 'ssh_brute_force'
+    assert rule.event_type == 'ssh_login_failed'
+    assert rule.threshold == 5
+    assert rule.window_seconds == 60
+    assert rule.title == 'SSH brute force'
+    assert rule.description == 'Multiple failed SSH logins from one IP within a short window'
+
+
+def test_rule_is_immutable(make_rule):
+    rule = make_rule()
+
+    with pytest.raises(FrozenInstanceError):
+        rule.threshold = 6
+
+
+def test_optional_rule_fields_default_to_empty_string():
+    rule = Rule(
+        id = 'ssh_brute_force',
+        event_type = 'ssh_login_failed',
+        threshold = 5,
+        window_seconds = 60
+    )
+
+    assert rule.title == ''
+    assert rule.description == ''

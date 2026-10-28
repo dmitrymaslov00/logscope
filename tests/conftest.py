@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timezone
-from logscope.models import Event, Alert
+from logscope.models import Event, Alert, Rule
 
 
 @pytest.fixture
@@ -41,3 +41,21 @@ def make_alert():
     
     return _make
 
+
+@pytest.fixture
+def make_rule():
+    def _make(**overrides):
+        
+        defaults = {
+            "id": "ssh_brute_force",
+            "event_type": "ssh_login_failed",
+            "threshold": 5,
+            "window_seconds": 60,
+            "title": "SSH brute force",
+            "description": "Multiple failed SSH logins from one IP within a short window"
+        }
+
+        defaults.update(overrides)
+        return Rule(**defaults)
+    
+    return _make
