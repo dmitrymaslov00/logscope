@@ -1,6 +1,7 @@
 from logscope.rules.brute_force import detect_brute_force
 from datetime import datetime, timezone, timedelta
 from logscope.storage import init_db, insert_event, query_events
+from logscope.rules.loader import load_rule
 
 
 
@@ -314,3 +315,33 @@ def test_alert_uses_rule_id(make_event, make_rule):
 
     assert len(res) == 1
     assert res[0].rule == 'custom_rule'
+
+
+def test_detector_uses_rule_loaded_from_yaml(tmp_path, make_event):
+    p = tmp_path / 'rule.yml'
+    p.write_text('id: custom_yaml_rule\nevent_type: ssh_login_success\nthreshold: 3\nwindow_seconds: 10', encoding='utf-8')
+
+    r = load_rule(p)
+
+    event1 = make_event(
+        event_type = 'ssh_login_success',
+        timestamp = datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc)
+    )
+
+    event2 = make_event(
+        event_type = 'ssh_login_success',
+        timestamp = datetime(2026, 10, 19, 1, 41, 4, tzinfo=timezone.utc)
+    )
+
+    event3 = make_event(
+        event_type = 'ssh_login_success',
+        timestamp = datetime(2026, 10, 19, 1, 41, 9, tzinfo=timezone.utc)
+    )
+
+    events = [event1, event2, event3]
+
+    res = detect_brute_force(events, r)
+
+    assert len(res) == 1
+    assert res[0].count == 3
+    assert res[0].rule == 'custom_yaml_rule'
