@@ -1,15 +1,15 @@
-from logscope.models import Event, Alert, EVENT_SSH_LOGIN_FAILED
+from logscope.models import Event, Alert, Rule
 from collections import defaultdict
 from datetime import timedelta
 
 
-def detect_brute_force(events: list[Event], threshold: int = 5, window_seconds: int = 60) -> list[Alert]:
+def detect_brute_force(events: list[Event], rule: Rule) -> list[Alert]:
     by_ip = defaultdict(list)
     alerts = []
-    window = timedelta(seconds=window_seconds)
+    window = timedelta(seconds=rule.window_seconds)
 
     for e in events:
-        if e.event_type == EVENT_SSH_LOGIN_FAILED and e.src_ip is not None:
+        if e.event_type == rule.event_type and e.src_ip is not None:
             by_ip[e.src_ip].append(e)
 
     for ip, ip_events in by_ip.items():
@@ -23,9 +23,9 @@ def detect_brute_force(events: list[Event], threshold: int = 5, window_seconds: 
                 else:
                     break
 
-            if cnt >= threshold:
+            if cnt >= rule.threshold:
                 alerts.append(Alert(
-                    rule='ssh_brute_force',
+                    rule=rule.id,
                     src_ip=ip,
                     count=cnt,
                     first_seen=ip_events[i].timestamp,
