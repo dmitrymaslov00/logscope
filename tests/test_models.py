@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timezone
 from dataclasses import FrozenInstanceError
-from logscope.models import Event, Rule
+from logscope.models import Event, Rule, EnrichedAlert
 
 
 def test_event_stores_all_fields(make_event):
@@ -92,3 +92,51 @@ def test_optional_rule_fields_default_to_empty_string():
 
     assert rule.title == ''
     assert rule.description == ''
+
+
+def test_enriched_alert_stores_fields(make_alert):
+    alert = make_alert()
+
+    abuseipdb_test_answer = {
+        "score": 30,
+        "reports": 205,
+        "country": "US",
+        "isp": "Spectrum"
+    }
+
+    enriched_alert = EnrichedAlert(
+        alert=alert,
+        abuseipdb=abuseipdb_test_answer
+    )
+
+
+    assert enriched_alert.alert.rule == 'ssh_brute_force'
+    assert enriched_alert.alert.src_ip == '203.0.113.5'
+    assert enriched_alert.alert.count == 5
+    assert enriched_alert.alert.first_seen == datetime(2026, 10, 19, 1, 41, 0, tzinfo=timezone.utc)
+    assert enriched_alert.alert.last_seen == datetime(2026, 10, 19, 1, 41, 55, tzinfo=timezone.utc)
+
+    assert enriched_alert.abuseipdb["score"] == 30
+    assert enriched_alert.abuseipdb["reports"] == 205
+    assert enriched_alert.abuseipdb["country"] == 'US'
+    assert enriched_alert.abuseipdb["isp"] == 'Spectrum'
+
+
+def test_enriched_alert_is_immutable(make_alert):
+    alert = make_alert()
+
+    abuseipdb_test_answer = {
+        "score": 30,
+        "reports": 205,
+        "country": "US",
+        "isp": "Spectrum"
+    }
+
+    enriched_alert = EnrichedAlert(
+        alert=alert,
+        abuseipdb=abuseipdb_test_answer
+    )
+
+    
+    with pytest.raises(FrozenInstanceError):
+        enriched_alert.abuseipdb = {}

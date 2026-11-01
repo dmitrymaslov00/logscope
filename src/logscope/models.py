@@ -39,3 +39,9 @@ class Rule:
     window_seconds: int
     title: str = ''
     description: str = ''
+
+
+@dataclass(frozen=True, slots=True)
+class EnrichedAlert:
+    alert: Alert
+    abuseipdb: dict
