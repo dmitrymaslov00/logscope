@@ -1,8 +1,9 @@
 import sqlite3
 from pathlib import Path
-from logscope.models import Event
+from logscope.models import Event, EnrichedAlert
 from datetime import datetime, timezone
 from contextlib import closing
+import json
 
 
 
@@ -29,6 +30,18 @@ def init_db(db_path: Path) -> None:
                     src_ip TEXT,
                     src_port INTEGER,
                     UNIQUE (timestamp, host, source, raw)
+                )
+            """)
+
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS alerts (
+                    id INTEGER PRIMARY KEY,
+                    rule TEXT NOT NULL,
+                    src_ip TEXT NOT NULL,
+                    count INTEGER NOT NULL,
+                    first_seen TEXT NOT NULL,
+                    last_seen TEXT NOT NULL,
+                    abuseipdb TEXT NOT NULL
                 )
             """)
 
@@ -92,3 +105,26 @@ def query_events(db_path: Path, start: datetime, end: datetime) -> list[Event]:
                 
                 for row in rows
             ]
+
+
+def insert_enriched_alert(db_path: Path, enriched_alert: EnrichedAlert) -> None:
+    iso_first_seen = _to_utc_iso(enriched_alert.alert.first_seen)
+    iso_last_seen = _to_utc_iso(enriched_alert.alert.last_seen)
+    abuseipdb_res = json.dumps(enriched_alert.abuseipdb, ensure_ascii=False)
+
+
+    with closing(sqlite3.connect(db_path)) as conn:
+        with conn:
+            conn.execute("""
+                INSERT INTO alerts (rule, src_ip, count, first_seen, last_seen, abuseipdb)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    enriched_alert.alert.rule,
+                    enriched_alert.alert.src_ip,
+                    enriched_alert.alert.count,
+                    iso_first_seen,
+                    iso_last_seen,
+                    abuseipdb_res,
+                ),
+            )
