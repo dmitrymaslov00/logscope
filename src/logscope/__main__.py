@@ -1,7 +1,10 @@
 import argparse
 from logscope.rules.loader import load_rules, RuleError
+from logscope.parsers.auth_log import parse_file
+from logscope.storage import init_db, insert_event
 from pathlib import Path
 import sys
+import sqlite3
 
 
 
@@ -22,7 +25,22 @@ def main(argv=None) -> int:
     if len(rules) == 0:
         print(f'Error: Imported 0 rules from {args.rules}', file=sys.stderr)
         return 1
+
+    try:
+        parsed_events = list(parse_file(args.log, year=args.year))
+    except OSError as e:
+        print(f'Error when loading file {args.log}: {e}', file=sys.stderr)
+        return 1
     
+    try:
+        init_db(args.db)
+        for e in parsed_events:
+            insert_event(args.db, e)
+    except sqlite3.Error as e:
+        print(f'SQLite error: {e}', file=sys.stderr)
+        return 1
+
+
     return 0
 
     
