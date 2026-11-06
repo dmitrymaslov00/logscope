@@ -8,10 +8,13 @@ version = "0.1.0"
 description = "Mini-SIEM: lightweight log parsing, storage and detection engine"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["pyyaml>=6.0"]
+dependencies = [
+    "pyyaml>=6.0",
+    "ioc-enricher @ git+https://github.com/dmitrymaslov00/ioc-enricher.git@131b21e017c9c5126aae8f2db2c5e0dee001b545",
+]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "responses"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
