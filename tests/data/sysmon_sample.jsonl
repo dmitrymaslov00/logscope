@@ -1,0 +1,2 @@
+{"EventID": 3, "UtcTime": "2026-11-13T10:00:00Z", "Computer": "win01", "User": "LAB\\alice", "SourceIp": "192.0.2.10", "SourcePort": 51000, "DestinationIp": "203.0.113.20", "DestinationPort": 443}
+{"EventID": 3, "UtcTime": "2026-11-13T12:03:00Z", "Computer": "win01", "User": "LAB\\alice", "SourceIp": "192.0.2.10", "SourcePort": 51009, "DestinationIp": "203.0.113.20", "DestinationPort": 443}
