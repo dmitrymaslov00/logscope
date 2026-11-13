@@ -6,6 +6,7 @@ import sqlite3
 from contextlib import closing
 import responses
 import pytest
+from pathlib import Path
 
 
 
@@ -365,3 +366,117 @@ def test_main_rejects_enrichment_without_api_key(tmp_path, capsys, monkeypatch):
     assert 'ABUSEIPDB_API_KEY' in captured.err
     assert captured.out == ''
     assert not (tmp_path / 'test.db').exists()
+
+
+def test_main_imports_sysmon_events(tmp_path, capsys):
+    log_file = Path(__file__).parent / "data" / "sysmon_sample.jsonl"
+
+    rules_dir = tmp_path / 'rules'
+    rules_dir.mkdir()
+
+    (rules_dir / 'rule.yml').write_text(
+        """
+        id: sysmon_network_burst
+        event_type: sysmon_network_connection
+        threshold: 2
+        window_seconds: 60
+        title: Sysmon network burst
+        description: Many connections from one IP
+        """, encoding='utf-8'
+    )
+
+    db = tmp_path / 'test.db'
+
+    result = main([
+        "--log", str(log_file),
+        "--rules", str(rules_dir),
+        "--db", str(db),
+        "--source", 'sysmon'
+    ])
+
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert captured.err == ''
+    assert json.loads(captured.out) == []
+
+
+    start = datetime(2026, 11, 13, 0, 0, 0, tzinfo=timezone.utc)
+    end = datetime(2026, 11, 14, 0, 0, 0, tzinfo=timezone.utc)
+    events = query_events(db, start, end)
+
+    assert len(events) == 2
+    assert events[0].source == 'sysmon'
+    assert events[0].event_type == 'sysmon_network_connection'
+    assert events[1].source == 'sysmon'
+    assert events[1].event_type == 'sysmon_network_connection'
+    assert events[0].src_port == 51000
+    assert events[1].src_port == 51009
+
+
+def test_main_detects_sysmon_network_burst(tmp_path, capsys):
+    log_file = tmp_path / 'sysmon_log_file.jsonl'
+    event1 = {"EventID": 3, "UtcTime": "2026-11-13T10:00:00Z", "Computer": "win01", "User": "LAB\\alice", "SourceIp": "192.0.2.10", "SourcePort": 51000, "DestinationIp": "203.0.113.20", "DestinationPort": 443}
+    event2 = {"EventID": 3, "UtcTime": "2026-11-13T10:00:10Z", "Computer": "win01", "User": "LAB\\alice", "SourceIp": "192.0.2.10", "SourcePort": 51009, "DestinationIp": "203.0.113.20", "DestinationPort": 443}
+
+    log_file.write_text(
+        json.dumps(event1) + "\n" + json.dumps(event2),
+        encoding="utf-8"
+    )
+
+    rules_dir = tmp_path / 'rules'
+    rules_dir.mkdir()
+
+    (rules_dir / 'rule.yml').write_text(
+        """
+        id: sysmon_network_burst
+        event_type: sysmon_network_connection
+        threshold: 2
+        window_seconds: 60
+        title: Sysmon network burst
+        description: Many connections from one IP
+        """, encoding='utf-8'
+    )
+
+    db = tmp_path / 'test.db'
+
+    result = main([
+        "--log", str(log_file),
+        "--rules", str(rules_dir),
+        "--db", str(db),
+        "--source", 'sysmon'
+    ])
+
+    captured = capsys.readouterr()
+
+    assert result == 0
+    assert captured.err == ''
+
+    out = json.loads(captured.out)
+    assert len(out) == 1
+    alert = out[0]
+    assert alert["rule"] == 'sysmon_network_burst'
+    assert alert["src_ip"] == '192.0.2.10'
+    assert alert["count"] == 2
+    assert alert["first_seen"] == '2026-11-13T10:00:00+00:00'
+    assert alert["last_seen"] == '2026-11-13T10:00:10+00:00'
+    assert alert["abuseipdb"] == {}
+
+    with closing(sqlite3.connect(db)) as conn:
+        with conn:
+            cursor = conn.execute("""
+                SELECT rule, src_ip, count, first_seen, last_seen, abuseipdb
+                from alerts
+            """)
+
+            rows = cursor.fetchall()
+
+    assert len(rows) == 1
+    row = rows[0]
+
+    assert row[0] == 'sysmon_network_burst'
+    assert row[1] == '192.0.2.10'
+    assert row[2] == 2
+    assert row[3] == '2026-11-13T10:00:00+00:00'
+    assert row[4] == '2026-11-13T10:00:10+00:00'
+    assert json.loads(row[5]) == {}

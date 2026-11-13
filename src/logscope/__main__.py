@@ -1,6 +1,7 @@
 import argparse
 from logscope.rules.loader import load_rules, RuleError
-from logscope.parsers.auth_log import parse_file
+from logscope.parsers.auth_log import parse_file as parse_auth_file
+from logscope.parsers.sysmon import parse_file as parse_sysmon_file
 from logscope.storage import init_db, insert_event, insert_enriched_alert
 from logscope.rules.brute_force import detect_brute_force
 from logscope.enrichment import enrich_alert
@@ -18,9 +19,13 @@ def main(argv=None) -> int:
     parser.add_argument('-l', '--log', help = 'path to the log file', required=True, type=Path)
     parser.add_argument('-r', '--rules', help = 'path to the rules directory', required=True, type=Path)
     parser.add_argument('-d', '--db', help = 'path to the SQLite database', required=True, type=Path)
-    parser.add_argument('-y', '--year', help = 'year of log events', required=True, type=int)
+    parser.add_argument('-y', '--year', help = 'year of log events', type=int)
     parser.add_argument('-e', '--enrich', help = 'enrich alert IP addresses via AbuseIPDB', action='store_true')
+    parser.add_argument('-s', '--source', choices=['auth', 'sysmon'], default='auth', help = 'input log format (default: auth)')
     args = parser.parse_args(argv)
+
+    if args.source == 'auth' and args.year is None:
+        parser.error('--year is required for auth logs')
 
     api_key = None
 
@@ -42,7 +47,10 @@ def main(argv=None) -> int:
         return 1
 
     try:
-        parsed_events = list(parse_file(args.log, year=args.year))
+        if args.source == 'auth':
+            parsed_events = list(parse_auth_file(args.log, year=args.year))
+        else:
+            parsed_events = list(parse_sysmon_file(args.log))
     except OSError as e:
         print(f'Error when loading file {args.log}: {e}', file=sys.stderr)
         return 1
