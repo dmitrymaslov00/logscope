@@ -1,0 +1,4 @@
+id: ssh_brute_force
+event_type: ssh_login_failed
+threshold: 3
+window_seconds: 60

@@ -117,3 +117,7 @@ Tests cover log parsing, YAML rule validation, threshold-based detection, SQLite
 - YAML rules allow detection parameters to be changed without editing Python code
 - SQLite requires no separate database server
 - Enrichment is optional, and the API key is read from an environment variable
+
+## Demo
+
+[Demo scenarios and verification](demo/README.md)

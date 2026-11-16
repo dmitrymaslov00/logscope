@@ -1,0 +1,4 @@
+id: sysmon_network_burst
+event_type: sysmon_network_connection
+threshold: 2
+window_seconds: 10800

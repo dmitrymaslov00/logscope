@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "logscope"
-version = "0.1.0"
+version = "1.0.0"
 description = "Mini-SIEM: lightweight log parsing, storage and detection engine"
 readme = "README.md"
 requires-python = ">=3.10"
